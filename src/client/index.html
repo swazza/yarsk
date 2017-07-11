@@ -2,10 +2,41 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <meta name="viewport" content="width=device-width">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <script>
+      (function() {
+        /*
+        * <link> tags that are pointing to CDNs are created at runtime and then appended to the DOM. Because CDNs
+        * can sometimes take really long time to load, we don't want a blank screen to be shown. Appending <link> tags
+        * to DOM via javascript does not block the rest of the view till the resources referred to by the <link> tag are loaded.
+        * Once they are loaded, the view is refreshed automatically.
+        */
+        var head = document.querySelector('head'),
+            fontUrl = "https://fonts.googleapis.com/css?family=Montserrat:200",
+            normalizeUrl = "https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css",
+            fontLink = document.createElement('link'),
+            normalizeLink = document.createElement('link');
+
+        fontLink.setAttribute("rel", "stylesheet");
+        fontLink.setAttribute("href", fontUrl);
+        normalizeLink.setAttribute("rel", "stylesheet");
+        normalizeLink.setAttribute("href", normalizeUrl);
+
+        head.appendChild(fontLink);
+        head.appendChild(normalizeLink);
+      }());
+    </script>
+    <style>
+      body {
+        font-family: 'Montserrat', sans-serif;
+      }
+    </style>
+    <style data-aphrodite>/*css.content*/</style>
   </head>
   <body>
     <div id="mount"><!--ssr--></div>
-    <script>window.__PRELOADED_STATE__=($ssrState || {})</script>
+    <script>window.__PRELOADED_STATE__=(window.$ssrState || {})</script>
+    <script>window.__RENDERED_CLASS_NAMES=(window.$renderedClasses || [])</script>
   </body>
 </html>

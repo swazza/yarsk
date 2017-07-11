@@ -4,17 +4,29 @@ import { createStore, combineReducers, applyMiddleware, compose } from "redux";
 import { ConnectedRouter as Router, routerReducer, routerMiddleware, push } from "react-router-redux";
 import createHistory from "history/createBrowserHistory";
 import { ApolloClient, ApolloProvider, createNetworkInterface } from "react-apollo";
+import { StyleSheet } from "aphrodite";
 import { App } from "common/App";
+import { appStore, appReducers } from "pods";
+import { dataIdFromObject, resolvers } from "resolvers";
 
-const networkInterface = createNetworkInterface({ uri: "http://localhost:4000/graphql" }),
-  client = new ApolloClient({ networkInterface, initialState: window.__PRELOADED_STATE__ || {} }),
+StyleSheet.rehydrate(window.__RENDERED_CLASS_NAMES);
+
+const networkInterface = createNetworkInterface({ uri: process.env.gqlEndpoint }),
+  client = new ApolloClient({
+    networkInterface,
+    dataIdFromObject,
+    customResolvers: { Query: { ...resolvers } },
+    initialState: window.__PRELOADED_STATE__ || {},
+    shouldBatch: true
+  }),
   history = createHistory(),
   reactRouterMiddleware = routerMiddleware(history),
   apolloMiddleware = client.middleware(),
-  composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose,
+  composeEnhancers =
+    process.env.NODE_ENV === "production" ? compose : window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose,
   store = createStore(
-    combineReducers({ router: routerReducer, apollo: client.reducer() }),
-    window.__PRELOADED_STATE__,
+    combineReducers({ router: routerReducer, apollo: client.reducer(), ...appReducers }),
+    { ...window.__PRELOADED_STATE__, ...appStore },
     composeEnhancers(applyMiddleware(reactRouterMiddleware, apolloMiddleware))
   );
 
